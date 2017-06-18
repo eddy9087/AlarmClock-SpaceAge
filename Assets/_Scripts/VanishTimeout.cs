@@ -7,12 +7,13 @@ public class VanishTimeout : MonoBehaviour {
 
 	public GameObject Minion;
 	public GameObject Thunder;
-	public int TimeOut;
 	public float killsphere;
+    public int type;
 	private Animation anim;
 	private Vector3 Ray_origin;
 	private Vector3 Ray_direction;
 	private ClickHandler clickHandler;
+    private int CountToDeath = 0;
 
 	private Thor_GameControl gameController;
 
@@ -30,7 +31,7 @@ public class VanishTimeout : MonoBehaviour {
 		{
 			Debug.Log ("Cannot find 'GameController' script");
 		}
-		//StartCoroutine(CountDownExplode());
+		StartCoroutine(CountDownExplode());
 	}
 	
 	// Update is called once per frame
@@ -39,8 +40,9 @@ public class VanishTimeout : MonoBehaviour {
 		if (gameController.ThorUltimate ()) {
 			Quaternion spawnRotation = Quaternion.identity;
 			GameObject spawnedHazard = Instantiate (Thunder, transform.position, spawnRotation);
-			StartCoroutine(Killed());
-		}
+			StartCoroutine(KilledByThunder());
+            
+        }
 		if (clickHandler.fire) {
 			Ray_origin = clickHandler.rayOrigin;
 			Ray_direction = clickHandler.shootDirection;
@@ -48,21 +50,40 @@ public class VanishTimeout : MonoBehaviour {
 			Ray_direction = Camera.main.transform.forward;
 			Vector3 vb = Ray_direction / Ray_direction.magnitude;
 			float dist = Vector3.Cross (va, vb).magnitude;
-			if (dist < killsphere)
-				StartCoroutine(Killed());
-		}
+            if (dist < killsphere){
+                CountToDeath++;
+                StartCoroutine(KilledByLaser()); 
+            }
+            
+        }
 	}
 
 	IEnumerator CountDownExplode (){
-		yield return new WaitForSeconds(TimeOut);
-		anim.Play ();
-		yield return new WaitForSeconds(anim.clip.length);
+		yield return new WaitForSeconds(22);
 		Destroy (Minion);
 	}
 
-	IEnumerator Killed (){
-		anim.Play ();
-		yield return new WaitForSeconds(anim.clip.length);
-		Destroy (Minion);
-	}
+    IEnumerator KilledByThunder()
+    {
+        anim.Play();
+        yield return new WaitForSeconds(anim.clip.length);
+        gameController.AddScore(1);
+        Destroy(Minion);
+    }
+
+    IEnumerator KilledByLaser()
+    {
+        anim.Play();
+        yield return new WaitForSeconds(anim.clip.length);
+        if(type == 1)//Goblin
+        {
+            gameController.AddScore(3);
+        }
+        else if (type == 2 )
+        {
+            if (CountToDeath >= 3)
+                gameController.AddScore(10);
+        }
+        Destroy(Minion);
+    }
 }

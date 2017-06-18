@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Thor_GameControl : MonoBehaviour {
 
@@ -8,13 +9,25 @@ public class Thor_GameControl : MonoBehaviour {
 	public GameObject Goblin;
 	public bool gameOver;
 	public float volTh;
+    public float waveWait;
+    public float gameOverWait;
+    public Text gameText;
+    public Text scoreText;
+    public Text healthText;
     public AudioClip thundersound;
     
     private bool Ragnarok;//private
 	private bool UltAvailable;
 	private int GoblinNum;
 	private int GolemNum;
-	private MicInput[] mic;
+    private int score;
+    private int health = 10;
+    private int passScore = 300;
+    private string today = System.DateTime.Now.Date.ToString();
+    private float recordTime = 0f;
+    private bool timeOut = false;
+    private bool death = false;
+    private MicInput[] mic;
     private AudioSource source;
 
 
@@ -37,7 +50,19 @@ public class Thor_GameControl : MonoBehaviour {
             source.Play();
             StartCoroutine (WaitForThunder ());
 		}
-	}
+        if (health <= 0){
+            death = true;
+            GameOver();
+        }            
+        if (score >= passScore && !gameOver)
+            GameOver();
+        else if (recordTime >= 120 && !gameOver){
+            timeOut = true;
+            GameOver();
+        }
+        else if (!gameOver)
+            recordTime += Time.deltaTime;
+    }
 
 	IEnumerator WaitForThunder (){
 		yield return new WaitForSeconds (5);
@@ -52,20 +77,77 @@ public class Thor_GameControl : MonoBehaviour {
 	}
 
 	IEnumerator SpawnWaves (){
-		GoblinNum = Random.Range (10, 14);
-		GolemNum = Random.Range (1, 3);
+		GoblinNum = Random.Range (10, 15);
+		GolemNum = Random.Range (3, 5);
 		for (int times = 0; times <= 100; times++) {
-			for (int i = 0; i < GoblinNum; i++) {
-				Vector3 spawnPosition = new Vector3 (Random.Range (-75, 75), 8, Random.Range (-75, 75));
+            for (int i = 0; i < GoblinNum; i++) {
+				Vector3 spawnPosition = new Vector3 (Random.Range (-80, -25) * (Random.Range(0,2)*2 -1), 8, Random.Range (-80, -25) * (Random.Range(0, 2) * 2 - 1));
 				Quaternion spawnRotation = Quaternion.identity;
 				GameObject spawnedHazard = Instantiate (Goblin, spawnPosition, spawnRotation);
-			}
-			for (int i = 0; i < GolemNum; i++) {
-				Vector3 spawnPosition = new Vector3 (Random.Range (-75, 75), 8, Random.Range (-75, 75));
+                if (gameOver)
+                {
+                    yield return new WaitForSeconds(gameOverWait);
+                    break;
+                }
+            }
+            for (int i = 0; i < GolemNum; i++) {
+				Vector3 spawnPosition = new Vector3 (Random.Range (-80, -25) * (Random.Range(0,2)*2 -1), 8, Random.Range (-80, -25) * (Random.Range(0, 2) * 2 - 1));
 				Quaternion spawnRotation = Quaternion.identity;
 				GameObject spawnedHazard = Instantiate (IceGolem, spawnPosition, spawnRotation);
-			}
-			yield return new WaitForSeconds (3);
-		}
-	}
+                if (gameOver)
+                {
+                    yield return new WaitForSeconds(gameOverWait);
+                    break;
+                }
+            }
+            Debug.Log("score = " + score);
+            Debug.Log("health = "+ health);
+            if (gameOver)
+                break;
+            else
+                yield return new WaitForSeconds(3);
+        }
+        MenuController.control.AddCoins(score);
+
+        Application.LoadLevel("Home");
+    }
+
+    public void AddScore(int newScoreValue)
+    {
+        score += newScoreValue;
+        UpdateScore();
+    }
+
+    public void MinusHealth(int newHealthValue)
+    {
+        health -= newHealthValue;
+        UpdateHealth();
+    }
+
+    void UpdateScore()
+    {
+        scoreText.text = "Score: " + score;
+    }
+
+    void UpdateHealth()
+    {
+        healthText.text = "Health: " + health;
+    }
+
+    public void GameOver()
+    {
+        if (!timeOut && !death)
+        {
+            gameText.text = "Game Over";
+
+            MenuController.control.shootRecords.Add(new ShootRecord(today, score));
+            MenuController.control.shootRecords.Sort();
+            //Debug.Log ("Date1: " + MenuController.control.shootRecords [1].date +"Time1: " + MenuController.control.shootRecords [1].time +"Count: " + MenuController.control.shootRecords.Count.ToString ());
+        }
+        else
+        {
+            gameText.text = "Game Failure";
+        }
+        gameOver = true;
+    }
 }

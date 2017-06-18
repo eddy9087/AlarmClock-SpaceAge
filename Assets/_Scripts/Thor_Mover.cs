@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class Mover : MonoBehaviour
+public class Thor_Mover : MonoBehaviour
 {
 	private Vector3 direction;
 	private Vector3 speed;

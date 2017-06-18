@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class DestroyByPlayerBoundary : MonoBehaviour
+public class Thor_DestroyByPlayerBoundary : MonoBehaviour
 {
 	private Thor_GameControl gameController;
 	private int scoreValue;
