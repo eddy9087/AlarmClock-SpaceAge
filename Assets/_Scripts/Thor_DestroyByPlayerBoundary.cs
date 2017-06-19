@@ -33,8 +33,8 @@ public class Thor_DestroyByPlayerBoundary : MonoBehaviour
             gameController.MinusHealth(2);
             //Debug.Log("Golem");
         }
-        //Destroy(other.gameObject);
-        Destroy(other);
+        Destroy(other.gameObject);
+        //Destroy(other);
         Debug.Log(other.tag);
 
     }

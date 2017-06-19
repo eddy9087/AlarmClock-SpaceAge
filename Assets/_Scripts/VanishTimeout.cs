@@ -81,7 +81,7 @@ public class VanishTimeout : MonoBehaviour {
         }
         else if (type == 2 )
         {
-            if (CountToDeath >= 3)
+            if (CountToDeath >= 10)
                 gameController.AddScore(10);
         }
         Destroy(Minion);
